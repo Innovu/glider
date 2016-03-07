@@ -35,7 +35,7 @@ it('executes basic select query', function() {
 it('errors on bad query', function() {
 	return DB.query('wtf;').then(
 		shouldNotHappen,
-		err => err.message.should.containEql('syntax error')
+		function(err) { err.message.should.containEql('syntax error'); }
 	);
 });
 

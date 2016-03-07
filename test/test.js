@@ -1,9 +1,7 @@
-'use strict';
-
-let glider = require('..'),
+var glider = require('..'),
 	should = require('should');
 
-const PORT = process.env.TRAVIS ? '5432' : '55432',
+var PORT = process.env.TRAVIS ? '5432' : '55432',
 	CONSTRING = `postgresql://postgres@localhost:${PORT}/postgres`,
 	DB = glider(CONSTRING);
 
@@ -14,25 +12,32 @@ it('creates a Database', function() {
 });
 
 it('connects to a database', function() {
-	return DB.connect().then(client => client.done());
+	return DB.connect().then(function(client) {
+		client.done.should.be.a.Function();
+		client.done();
+	});
 });
 
 it('errors on connect error', function() {
-	let db = glider('postgres://baduser@localhost:55432/postgres');
+	var db = glider('postgres://baduser@localhost:55432/postgres');
 	return db.connect().then(
-		() => should.not.exist(1),
-		err => ['28000', 'ECONNREFUSED'].should.containEql(err.code)
+		shouldNotHappen,
+		function(err) { ['28000', 'ECONNREFUSED'].should.containEql(err.code); }
 	);
 });
 
 it('executes basic select query', function() {
-	return DB.query('select 1::int as number;')
-		.then(result => result.rows[0].number.should.equal(1));
+	return DB.query('select 1::int as number;').then(
+		function(result) { result.rows[0].number.should.equal(1); }
+	);
 });
 
 it('errors on bad query', function() {
 	return DB.query('wtf;').then(
-		() => should.not.exist(1),
+		shouldNotHappen,
 		err => err.message.should.containEql('syntax error')
 	);
 });
+
+// helpers
+function shouldNotHappen() { should.not.exist(1); }

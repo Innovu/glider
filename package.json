@@ -7,11 +7,17 @@
     "build": "babel src -d lib",
     "test": "if [ -z ${TRAVIS+x} ]; then vagrant up; fi; npm run build; node_modules/mocha/bin/_mocha;"
   },
+  "files": [
+    "lib",
+    "src",
+    "index.js"
+  ],
   "keywords": [
     "postgresql",
     "postgres",
     "pg",
     "promise",
+    "node-postgres",
     "transaction"
   ],
   "author": "Tony Lukasavage",

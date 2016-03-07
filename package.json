@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "babel src -d lib",
-    "ci": "node_modules/mocha/bin/_mocha",
-    "test": "vagrant up; node_modules/mocha/bin/_mocha;"
+    "test": "if [ -z ${TRAVIS+x} ]; then vagrant up; fi; npm run build; node_modules/mocha/bin/_mocha;"
   },
   "keywords": [
     "postgresql",

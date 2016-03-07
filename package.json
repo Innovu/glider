@@ -1,0 +1,33 @@
+{
+  "name": "glider",
+  "version": "0.0.0",
+  "description": "Simple, expressive, Promise-based API for interacting with Postgres",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src -d lib",
+    "ci": "node_modules/mocha/bin/_mocha",
+    "test": "vagrant up; node_modules/mocha/bin/_mocha;"
+  },
+  "keywords": [
+    "postgresql",
+    "postgres",
+    "pg",
+    "promise",
+    "transaction"
+  ],
+  "author": "Tony Lukasavage",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Innovu/glider.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "pg": "^4.5.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.6.5",
+    "babel-preset-es2015": "^6.6.0",
+    "mocha": "^2.4.5",
+    "should": "^8.2.2"
+  }
+}

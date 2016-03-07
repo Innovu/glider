@@ -21,7 +21,7 @@ it('errors on connect error', function() {
 	let db = glider('postgres://baduser@localhost:55432/postgres');
 	return db.connect().then(
 		() => should.not.exist(1),
-		err => err.code.should.equal('28000')
+		err => ['28000', 'ECONNREFUSED'].should.containEql(err.code)
 	);
 });
 

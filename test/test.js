@@ -2,7 +2,7 @@ var glider = require('..'),
 	should = require('should');
 
 var PORT = process.env.TRAVIS ? '5432' : '55432',
-	CONSTRING = `postgresql://postgres@localhost:${PORT}/postgres`,
+	CONSTRING = 'postgresql://postgres@localhost:' + PORT + '/postgres',
 	DB = glider(CONSTRING);
 
 it('creates a Database', function() {

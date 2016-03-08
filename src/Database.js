@@ -21,20 +21,20 @@ class Database {
 			});
 		});
 	}
-	// query(query, values) {
-	// 	values = values || [];
-	// 	if (!query) { return reject(new Error('query required')); }
+	query(query, values) {
+		values = values || [];
+		if (!query) { return reject(new Error('query required')); }
 
-	// 	return this.connect().then(function(client) {
-	// 		return new Promise(function(resolve, reject) {
-	// 			client.query(query, values, function(err, result) {
-	// 				client && client.done();
-	// 				if (err) { return reject(err); }
-	// 				return resolve(result);
-	// 			});
-	// 		});
-	// 	});
-	// }
+		return this.connect().then(function(client) {
+			return new Promise(function(resolve, reject) {
+				client.query(query, values, function(err, result) {
+					client && client.done();
+					if (err) { return reject(err); }
+					return resolve(result);
+				});
+			});
+		});
+	}
 }
 
 module.exports = Database;

@@ -26,17 +26,31 @@ it('errors on connect error', function() {
 	);
 });
 
-it('executes basic select query', function() {
-	return DB.query('select 1::int as number;').then(
-		function(result) { result.rows[0].number.should.equal(1); }
-	);
-});
+// it('executes basic select query', function() {
+// 	return DB.query('select 1::int as number;').then(
+// 		function(result) { result.rows[0].number.should.equal(1); }
+// 	);
+// });
 
-it('errors on bad query', function() {
-	return DB.query('wtf;').then(
-		shouldNotHappen,
-		function(err) { err.message.should.containEql('syntax error'); }
-	);
+// it('errors on bad query', function() {
+// 	return DB.query('wtf;').then(
+// 		shouldNotHappen,
+// 		function(err) { err.message.should.containEql('syntax error'); }
+// 	);
+// });
+
+it('executes transaction', function() {
+	return DB
+		.begin()
+		.query('select 1::int as number')
+		.query('select 2::int as number')
+		.query('select 3::int as number')
+		.commit()
+		.then(function(results) {
+			results[1].rows[0].number.should.equal(1);
+			results[2].rows[0].number.should.equal(2);
+			results[3].rows[0].number.should.equal(3);
+		}) ;
 });
 
 // helpers

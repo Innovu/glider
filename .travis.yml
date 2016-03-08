@@ -1,10 +1,54 @@
 language: node_js
 sudo: false
-node_js:
-  - "4.3"
-  - "4.2"
-  - "4.1"
-  - "4.0"
-  - "0.12"
 services:
   - postgresql
+matrix:
+  include:
+    - node_js: "0.12"
+      addons:
+        postgresql: "9.1"
+    - node_js: "0.12"
+      addons:
+        postgresql: "9.2"
+    - node_js: "0.12"
+      addons:
+        postgresql: "9.3"
+    - node_js: "0.12"
+      addons:
+        postgresql: "9.4"
+    - node_js: "4.1"
+      addons:
+        postgresql: "9.1"
+    - node_js: "4.1"
+      addons:
+        postgresql: "9.2"
+    - node_js: "4.1"
+      addons:
+        postgresql: "9.3"
+    - node_js: "4.1"
+      addons:
+        postgresql: "9.4"
+    - node_js: "4.2"
+      addons:
+        postgresql: "9.1"
+    - node_js: "4.2"
+      addons:
+        postgresql: "9.2"
+    - node_js: "4.2"
+      addons:
+        postgresql: "9.3"
+    - node_js: "4.2"
+      addons:
+        postgresql: "9.4"
+    - node_js: "4.3"
+      addons:
+        postgresql: "9.1"
+    - node_js: "4.3"
+      addons:
+        postgresql: "9.2"
+    - node_js: "4.3"
+      addons:
+        postgresql: "9.3"
+    - node_js: "4.3"
+      addons:
+        postgresql: "9.4"

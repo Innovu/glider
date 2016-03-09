@@ -23,7 +23,7 @@ class Database {
 	}
 	query(query, values) {
 		values = values || [];
-		if (!query) { return reject(new Error('query required')); }
+		if (!query) { return Promise.reject(new Error('query required')); }
 
 		return this.connect().then(function(client) {
 			return new Promise(function(resolve, reject) {

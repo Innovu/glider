@@ -1,8 +1,6 @@
-var Database = require('../lib/Database'),
-	glider = require('..'),
+var glider = require('..'),
 	pg = require('pg'),
-	should = require('should'),
-	Transaction = require('../lib/Transaction');
+	should = require('should');
 
 var PORT = process.env.TRAVIS ? '5432' : '55432',
 	CONSTRING = 'postgresql://postgres@localhost:' + PORT + '/postgres',
@@ -52,14 +50,27 @@ describe('index', function() {
 
 describe('[Database]', function() {
 
-	it('connects to a database', function() {
+	it('throws when constructor is invoked without connection string', function() {
+		(function() { new glider.Database(); }).should.throw(/connection string required/);
+	});
+
+	it('rejects when connect() is invoked with no connection string', function() {
+		var db = new glider.Database('fakestring');
+		db.conString = null;
+		return db.connect().then(
+			shouldNotHappen,
+			function(err) { err.message.should.match(/connection string required/); }
+		);
+	});
+
+	it('resolves a database connection', function() {
 		return DB.connect().then(function(client) {
 			client.done.should.be.a.Function();
 			client.done();
 		});
 	});
 
-	it('errors on connect error', function() {
+	it('rejects on connect error', function() {
 		var db = glider('postgres://baduser@localhost:55432/postgres');
 		return db.connect().then(
 			shouldNotHappen,
@@ -67,7 +78,14 @@ describe('[Database]', function() {
 		);
 	});
 
-	it('executes basic select query', function() {
+	it('rejects on query with no query string', function() {
+		return DB.query().then(
+			shouldNotHappen,
+			function(err) { err.message.should.match(/query required/); }
+		);
+	});
+
+	it('resolves basic select query', function() {
 		return DB.query('select 1::int as number;').then(
 			function(result) {
 				result.rowCount.should.equal(1);
@@ -76,7 +94,7 @@ describe('[Database]', function() {
 		);
 	});
 
-	it('errors on bad query', function() {
+	it('rejects on bad query', function() {
 		return DB.query('wtf;').then(
 			shouldNotHappen,
 			function(err) { err.message.should.containEql('syntax error'); }
@@ -87,7 +105,11 @@ describe('[Database]', function() {
 
 describe('[Transaction]', function() {
 
-	it('executes a series of SELECTs in transaction', function() {
+	it('throws when constructor is invoked without a db connection', function() {
+		(function() { new glider.Transaction(); }).should.throw(/db required/);
+	});
+
+	it('resolves a series of SELECT queries', function() {
 		return DB
 			.begin()
 			.query('select 1::int as number')
@@ -101,7 +123,7 @@ describe('[Transaction]', function() {
 			}) ;
 	});
 
-	it('errors on transaction error', function() {
+	it('rejects on missing query string', function() {
 		return DB
 			.begin()
 			.query('select 1::int as number')
@@ -114,7 +136,20 @@ describe('[Transaction]', function() {
 			);
 	});
 
+	it('rejects on transaction error', function() {
+		return DB
+			.begin()
+			.query('select 1::int as number')
+			.query()
+			.query('select 2::int as number')
+			.commit()
+			.then(
+				function() { shouldNotHappen(); },
+				function(err) { err.message.should.match(/query string required/); }
+			);
+	});
+
 });
 
 // helpers
-function shouldNotHappen() { should.not.exist(1); }
+function shouldNotHappen() { should.not.exist('this should not happen'); }

@@ -2,4 +2,23 @@
 
 Simple, expressive, Promise-based API for interacting with Postgres built on [node-postgres](https://github.com/brianc/node-postgres). Supports node.js 0.12+.
 
-*
+## Testing
+
+### Prerequisites
+
+* [vagrant](https://www.vagrantup.com/)
+* [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+
+### Run tests (mocha + should)
+
+```
+npm test
+```
+
+### Generate coverage report (istanbul)
+
+Reports are generated in the `./coverage` folder. An HTML-based report can be loaded into the browser from `./coverage/lcov-report/index.html`.
+
+```
+npm run cover
+```

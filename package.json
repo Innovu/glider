@@ -4,12 +4,11 @@
   "description": "Simple, expressive, Promise-based API for interacting with Postgres",
   "main": "index.js",
   "scripts": {
-    "build": "babel src -d lib",
     "cover": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha",
     "cover-travis": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "execute": "if [ -z ${TRAVIS+x} ]; then node_modules/mocha/bin/_mocha; else npm run cover-travis; fi; ",
     "vagrant": "if [ -z ${TRAVIS+x} ]; then vagrant up; fi;",
-    "test": "npm run vagrant; npm run build; npm run execute;"
+    "test": "npm run vagrant; babel src -d lib; npm run execute;"
   },
   "files": [
     "lib",

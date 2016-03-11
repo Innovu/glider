@@ -52,14 +52,14 @@ db
 	});
 
 	// output
-	CREATE
-	3
-	1
-	1
-	[
-		{ id: 1, value: 99 },
-		{ id: 2, value: 2 }
-	]
+	//   CREATE
+	//   3
+	//   1
+	//   1
+	//   [
+	//     { id: 1, value: 99 },
+	//     { id: 2, value: 2 }
+	//   ]
 ```
 
 or with the shorthand functions...
@@ -87,17 +87,17 @@ db
 	});
 
 	// output
-	[
-		'CREATE',
-		3,
-		1,
-		1,
-	[
-		{ id: 1, value: 99 },
-		{ id: 2, value: 2 }
-	]
-	{ id: 1, value: 99 }
-	99
+	//
+	//   CREATE
+	//   3
+	//   1
+	//   1
+	//   [
+	//     { id: 1, value: 99 },
+	//     { id: 2, value: 2 }
+	//   ]
+	//   { id: 1, value: 99 }
+	//   99
 ```
 
 ## Testing

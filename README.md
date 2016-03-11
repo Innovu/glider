@@ -50,6 +50,8 @@ db.delete('delete from foo where id = 2').then(function(result) {
 
 ### transactions
 
+If there's an error in any of the queries in a transaction, `glider` will automatically invoke a `ROLLBACK` and reject the current Promise.
+
 ```js
 var db = glider(CONNECTION_STRING);
 db

@@ -31,6 +31,23 @@ db.selectValue('select 1::integer as number').then(function(result) {
 });
 ```
 
+### insert/update/delete
+
+```js
+var db = glider(CONNECTION_STRING);
+db.insert('insert into foo values (1, 2, 3), (3, 4, 5)').then(function(result) {
+	return result.rowCount === 2 && result.command === 'INSERT'; // true
+});
+
+db.update('update foo set value = 1 where id = 1').then(function(result) {
+	return result.rowCount === 1 && result.command === 'UPDATE'; // true
+});
+
+db.delete('delete from foo where id = 2').then(function(result) {
+	return result.rowCount === 1 && result.command === 'DELETE'; // true
+});
+```
+
 ### transactions
 
 ```js

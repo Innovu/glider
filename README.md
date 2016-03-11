@@ -2,6 +2,26 @@
 
 Simple, expressive, Promise-based API for interacting with Postgres built on [node-postgres](https://github.com/brianc/node-postgres). Supports node.js 0.12+.
 
+## Install
+
+```
+npm install --save glider
+```
+
+## API
+
+* Transaction
+	* begin()
+	* commit()
+	* query(queryString, values)
+	* queryRows(queryString, values)
+		* select(queryString, values)
+		* selectOne(queryString, values)
+	* queryCount(queryString, values)
+		* insert(queryString, values)
+		* update(queryString, values)
+		* delete(queryString, values)
+
 ## Testing
 
 ### Prerequisites

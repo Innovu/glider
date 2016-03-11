@@ -1,6 +1,7 @@
 'use strict';
 
-let pg = require('pg'),
+let api = require('./api'),
+	pg = require('pg'),
 	Transaction = require('./Transaction');
 
 class Database {
@@ -21,20 +22,17 @@ class Database {
 			});
 		});
 	}
-	query(query, values) {
-		values = values || [];
-		if (!query) { return Promise.reject(new Error('query required')); }
+}
 
+api.methods.forEach(function(method) {
+	Database.prototype[method.name] = function(queryString, values) {
 		return this.connect().then(function(client) {
-			return new Promise(function(resolve, reject) {
-				client.query(query, values, function(err, result) {
-					client && client.done();
-					if (err) { return reject(err); }
-					return resolve(result);
-				});
+			return api.query(client, queryString, values, {
+				close: true,
+				result: method.result
 			});
 		});
-	}
-}
+	};
+});
 
 module.exports = Database;

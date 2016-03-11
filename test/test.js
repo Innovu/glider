@@ -2,39 +2,25 @@ var glider = require('..'),
 	pg = require('pg'),
 	should = require('should');
 
+var api = glider.api,
+	Database = glider.Database,
+	Transaction = glider.Transaction;
+
 var PORT = process.env.TRAVIS ? '5432' : '55432',
 	CONSTRING = 'postgresql://postgres@localhost:' + PORT + '/postgres',
-	TABLE = 'glider_test',
-	DB = glider(CONSTRING),
-	DATA = [
-		{ name: 'Tony', age: 35 },
-		{ name: 'Brian', age: 45 },
-		{ name: 'Eli', age: 55 },
-		{ name: 'Brandon', age: 65 },
-		{ name: 'Gabriel', age: 75 },
-		{ name: 'Mahen', age: 75 }
-	];
-
-before(function(done) {
-	var query =
-		'drop table if exists ' + TABLE + '; ' +
-		'create table ' + TABLE + '(id serial, name varchar(10), age integer);' +
-		'insert into ' + TABLE + ' (name, age) values ' +
-		DATA.map(function(d) { return '(\'' + d.name + '\',' + d.age + ')'; }).join(',') + ';';
-
-	pgQuery(query, done);
-});
+	TABLE_FOO = 'foo',
+	DB = glider(CONSTRING);
 
 describe('index', function() {
 
 	it('exposes core classes', function() {
-		glider.Transaction.name.should.equal('Transaction');
-		glider.Database.name.should.equal('Database');
+		Transaction.name.should.equal('Transaction');
+		Database.name.should.equal('Database');
 	});
 
 	it('creates a Database', function() {
 		should.exist(DB);
-		DB.should.be.an.instanceOf(glider.Database);
+		DB.should.be.an.instanceOf(Database);
 		DB.conString.should.equal(CONSTRING);
 	});
 
@@ -42,18 +28,16 @@ describe('index', function() {
 
 describe('[Database]', function() {
 
-	var TABLE_FOO = 'foo';
-
-	after(function(done) {
-		pgQuery('drop table ' + TABLE_FOO, done);
+	afterEach(function(done) {
+		pgQuery('drop table if exists foo', done);
 	});
 
-	it('throws when constructor is invoked without connection string', function() {
-		(function() { new glider.Database(); }).should.throw(/connection string required/);
+	it('throws when #constructor is invoked without connection string', function() {
+		(function() { new Database(); }).should.throw(/connection string required/);
 	});
 
-	it('rejects when connect() is invoked with no connection string', function() {
-		var db = new glider.Database('fakestring');
+	it('rejects when #connect is invoked with no connection string', function() {
+		var db = new Database('fakestring');
 		db.conString = null;
 		return db.connect().then(
 			shouldNotHappen,
@@ -61,14 +45,14 @@ describe('[Database]', function() {
 		);
 	});
 
-	it('resolves a database connection', function() {
+	it('resolves when #connect makes a database connection', function() {
 		return DB.connect().then(function(client) {
 			client.done.should.be.a.Function();
 			client.done();
 		});
 	});
 
-	it('rejects on connect error', function() {
+	it('rejects on #connect error', function() {
 		var db = glider('postgres://baduser@localhost:55432/postgres');
 		return db.connect().then(
 			shouldNotHappen,
@@ -76,39 +60,23 @@ describe('[Database]', function() {
 		);
 	});
 
-	it('rejects on query with no query string', function() {
-		return DB.query().then(
-			shouldNotHappen,
-			function(err) { err.message.should.match(/query required/); }
-		);
-	});
+	api.methods.forEach(function(method) {
+		it('rejects on #' + method.name + ' with no query string', function() {
+			return DB[method.name]().then(
+				shouldNotHappen,
+				function(err) { err.message.should.match(/query string required/); }
+			);
+		});
 
-	it('resolves basic select query', function() {
-		return DB.query('select 1::int as number;').then(
-			function(result) {
-				result.rowCount.should.equal(1);
-				result.rows[0].number.should.equal(1);
-			}
-		);
-	});
-
-	it('rejects on bad query', function() {
-		return DB.query('wtf;').then(
-			shouldNotHappen,
-			function(err) { err.message.should.containEql('syntax error'); }
-		);
-	});
-
-	it('resolves with test data', function() {
-		return DB.query('select * from ' + TABLE).then(function(result) {
-			result.rowCount.should.equal(DATA.length);
-			DATA.forEach(function(data, index) {
-				result.rows[index].should.have.properties(data);
-			});
+		it('rejects #' + method.name + ' on bad query', function() {
+			return DB[method.name]('wtf;').then(
+				shouldNotHappen,
+				function(err) { err.message.should.containEql('syntax error'); }
+			);
 		});
 	});
 
-	it('resolves on create/insert/update/select/delete', function() {
+	it('resolves on create/insert/update/select/delete via #query', function() {
 		return DB.query('create table ' + TABLE_FOO + ' (id serial, bar varchar(10))')
 			.then(function(result) {
 				result.command.should.equal('CREATE');
@@ -143,29 +111,129 @@ describe('[Database]', function() {
 			});
 	});
 
+	it('resolves on #insert/#update/#select/#selectOne/#selectValue/#delete', function() {
+		return DB.query('create table ' + TABLE_FOO + ' (id serial, bar varchar(10))')
+			.then(function(result) {
+				result.command.should.equal('CREATE');
+				return DB.insert('insert into ' + TABLE_FOO + ' (bar) values ($1), ($2), ($3)', ['sanders', 'trump', 'cruz']);
+			})
+			.then(function(result) {
+				result.should.equal(3);
+				return DB.update('update ' + TABLE_FOO + ' set bar = $1 where bar = $2', ['clinton', 'sanders']);
+			})
+			.then(function(result) {
+				result.should.equal(1);
+				return DB.select('select * from ' + TABLE_FOO);
+			})
+			.then(function(result) {
+				result.should.have.length(3);
+				result.forEach(function(row) { row.should.have.properties(['id', 'bar']); });
+				return DB.delete('delete from ' + TABLE_FOO + ' where bar != $1', ['trump']);
+			})
+			.then(function(result) {
+				result.should.equal(2);
+				return DB.selectOne('select * from ' + TABLE_FOO + ' where id = 2');
+			})
+			.then(function(result) {
+				result.should.have.properties({
+					id: 2,
+					bar: 'trump'
+				});
+				return DB.selectValue('select bar from ' + TABLE_FOO + ' where id = 2');
+			})
+			.then(function(result) {
+				result.should.equal('trump');
+			});
+	});
+
 });
 
 describe('[Transaction]', function() {
 
-	it('throws when constructor is invoked without a db connection', function() {
-		(function() { new glider.Transaction(); }).should.throw(/db required/);
+	afterEach(function() {
+		return DB.query('drop table if exists foo');
 	});
 
-	it('resolves a series of select queries', function() {
+	it('throws when constructor is invoked without a db connection', function() {
+		(function() { new Transaction(); }).should.throw(/db required/);
+	});
+
+	it('resolves results via #query for create/select/insert/update/delete', function() {
 		return DB
 			.begin()
-			.query('select 1::int as number')
-			.query('select $1::int as number', ['2'])
-			.queryOne('select 3::int as number')
+			.query('create table foo (id serial, value integer)')
+			.query('insert into foo (value) values ($1), ($2), ($3)', [1, 2, 3])
+			.query('select * from foo order by id asc')
+			.query('update foo set value = 0 where id = 2')
+			.query('delete from foo where id = 1')
+			.query('select * from foo order by id asc')
 			.commit()
 			.then(function(results) {
-				results[0].rows[0].number.should.equal(1);
-				results[1].rows[0].number.should.equal(2);
-				results[2].number.should.equal(3);
+				results.should.have.length(6);
+
+				results[0].command.should.equal('CREATE');
+
+				results[1].command.should.equal('INSERT');
+				results[1].rowCount.should.equal(3);
+
+				results[2].command.should.equal('SELECT');
+				results[2].rowCount.should.equal(3);
+				results[2].rows[0].value.should.equal(1);
+				results[2].rows[1].value.should.equal(2);
+				results[2].rows[2].value.should.equal(3);
+
+				results[3].command.should.equal('UPDATE');
+				results[3].rowCount.should.equal(1);
+
+				results[4].command.should.equal('DELETE');
+				results[4].rowCount.should.equal(1);
+
+				results[5].command.should.equal('SELECT');
+				results[5].rowCount.should.equal(2);
+				results[5].rows[0].value.should.equal(0);
+				results[5].rows[1].value.should.equal(3);
 			});
 	});
 
-	it('rejects on missing query string', function() {
+	it('resolves results via #select/#selectOne/#update/#insert/#delete', function() {
+		return DB
+			.begin()
+			.query('create table foo (id serial, value integer)')
+			.insert('insert into foo (value) values ($1), ($2), ($3)', [1, 2, 3])
+			.select('select * from foo order by id asc')
+			.update('update foo set value = 0 where id = 2')
+			.delete('delete from foo where id = 1')
+			.select('select * from foo order by id asc')
+			.selectOne('select * from foo where value = 0')
+			.selectValue('select value from foo where id = 3')
+			.commit()
+			.then(function(results) {
+				results.should.have.length(8);
+
+				results[0].command.should.equal('CREATE');
+
+				results[1].should.equal(3);
+
+				results[2].should.have.length(3);
+				results[2][0].value.should.equal(1);
+				results[2][1].value.should.equal(2);
+				results[2][2].value.should.equal(3);
+
+				results[3].should.equal(1);
+
+				results[4].should.equal(1);
+
+				results[5].should.have.length(2);
+				results[5][0].value.should.equal(0);
+				results[5][1].value.should.equal(3);
+
+				results[6].id.should.equal(2);
+
+				results[7].should.equal(3);
+			});
+	});
+
+	it('rejects on transaction error', function() {
 		return DB
 			.begin()
 			.query('select 1::int as number')
@@ -178,7 +246,7 @@ describe('[Transaction]', function() {
 			);
 	});
 
-	it('rejects on transaction error', function() {
+	it('rejects on missing query string', function() {
 		return DB
 			.begin()
 			.query('select 1::int as number')
@@ -191,47 +259,20 @@ describe('[Transaction]', function() {
 			);
 	});
 
-	it('resolves with test data', function() {
-		return DB
-			.begin()
-			.query('select * from ' + TABLE)
-			.commit()
-			.then(function(results) {
-				results.should.have.length(1);
-				results[0].rowCount.should.equal(DATA.length);
-				DATA.forEach(function(data, index) {
-					results[0].rows[index].should.have.properties(data);
-				});
-			});
-	});
-
-	it('resolves on insert and select', function() {
-		return DB
-			.begin()
-			.query('insert into ' + TABLE + ' (name, age) values ($1, $2)', ['rubio', 44])
-			.queryOne('select * from ' + TABLE + ' where id = lastval()')
-			.commit()
-			.then(function(results) {
-				results.should.have.length(2);
-				results[0].rowCount.should.equal(1);
-				results[1].name.should.equal('rubio');
-				results[1].age.should.equal(44);
-			});
-	});
-
 	it('rejects and rollbacks on error', function() {
 		return DB
 			.begin()
-			.query('insert into ' + TABLE + ' (name, age) values ($1, $2)', ['insert1', 123])
+			.query('create table foo (id serial, name varchar(10), age integer)')
+			.query('insert into foo (name, age) values ($1, $2)', ['insert1', 123])
 			.query('wtf;')
-			.query('insert into ' + TABLE + ' (name, age) values ($1, $2)', ['insert2', 456])
+			.query('insert into foo (name, age) values ($1, $2)', ['insert2', 456])
 			.commit()
 			.then(shouldNotHappen, function(err) {
 				err.message.should.match(/syntax error.+wtf/);
-				return DB.query('select * from ' + TABLE + ' where name in ($1, $2)', ['insert1', 'insert2'])
+				return DB.query('select exists(select 1 from pg_catalog.pg_class where relname = $1) as hasfoo', ['foo']);
 			})
 			.then(function(result) {
-				result.rowCount.should.equal(0);
+				result.rows[0].hasfoo.should.equal(false);
 			});
 	});
 

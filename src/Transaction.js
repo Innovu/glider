@@ -1,6 +1,7 @@
 'use strict';
 
-let pg = require('pg');
+let api = require('./api'),
+	pg = require('pg');
 
 class Transaction {
 	constructor(db) {
@@ -9,35 +10,17 @@ class Transaction {
 		this.queries = [{ queryString: 'BEGIN', result: 'none' }];
 		this.results = [];
 	}
-	query(queryString, values) {
-		this.queries.push({ queryString, values });
-		return this;
-	}
-	queryOne(queryString, values) {
-		this.queries.push({ queryString, values, result: 'one' });
-		return this;
-	}
 	commit() {
 		this.queries.push({ queryString: 'COMMIT', result: 'none' });
 
 		return this.db.connect().then((client) => {
 			return this.queries.reduce((p, query) => {
-				query.result = query.result || 'many';
+				query.result = query.result || 'result';
 				return p.then(() => {
-					return new Promise((resolve, reject) => {
-						if (!query.queryString) { return reject(new Error('query string required')); }
-						client.query(query.queryString, query.values, (err, result) => {
-							if (err) { return reject(err); }
-							switch(query.result) {
-								case 'many':
-									this.results.push(result);
-									break;
-								case 'one':
-									this.results.push(result.rows[0]);
-									break;
-							}
-							return resolve(this);
-						});
+					return api.query(client, query.queryString, query.values, {
+						result: query.result
+					}).then(result => {
+						if (result) { this.results.push(result); }
 					});
 				});
 			}, Promise.resolve()).then(() => {
@@ -47,5 +30,20 @@ class Transaction {
 		});
 	}
 }
+
+[
+	{ name: 'query', result: 'result' },
+	{ name: 'select', result: 'rows' },
+	{ name: 'selectOne', result: 'one' },
+	{ name: 'selectValue', result: 'value' },
+	{ name: 'insert', result: 'count' },
+	{ name: 'update', result: 'count' },
+	{ name: 'delete', result: 'count' }
+].forEach(function(o) {
+	Transaction.prototype[o.name] = function(queryString, values) {
+		this.queries.push({ queryString, values, result: o.result });
+		return this;
+	};
+});
 
 module.exports = Transaction;

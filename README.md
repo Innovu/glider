@@ -50,7 +50,7 @@ db.delete('delete from foo where id = 2').then(function(result) {
 
 ### transactions
 
-If there's an error in any of the queries in a transaction, `glider` will automatically invoke a `ROLLBACK` and reject the current Promise.
+If there's an error in any of the queries in a transaction, `glider` will automatically invoke a `ROLLBACK` and reject the current Promise with the database error.
 
 ```js
 var db = glider(CONNECTION_STRING);
@@ -63,25 +63,15 @@ db
 	.query('select * from foo')
 	.commit()
 	.then(function(results) {
-		console.log(results[0].command);
-		console.log(results[1].rowCount);
-		console.log(results[2].rowCount);
-		console.log(results[3].rowCount);
-		console.log(results[4].rows);
+		console.log(results[0].command);  // CREATE
+		console.log(results[1].rowCount); // 3
+		console.log(results[2].rowCount); // 1
+		console.log(results[3].rowCount); // 1
+		console.log(results[4].rows);     // [ { id: 1, value: 99 }, { id: 2, value: 2 } ]
 	});
-
-	// output
-	//   CREATE
-	//   3
-	//   1
-	//   1
-	//   [
-	//     { id: 1, value: 99 },
-	//     { id: 2, value: 2 }
-	//   ]
 ```
 
-or with the shorthand functions...
+or with `glider`'s specialized functions...
 
 ```js
 var db = glider(CONNECTION_STRING);
@@ -96,27 +86,14 @@ db
 	.selectValue('select value from foo where id = 1')
 	.commit()
 	.then(function(results) {
-		console.log(results[0].command);
-		console.log(results[1]);
-		console.log(results[2]);
-		console.log(results[3]);
-		console.log(results[4]);
-		console.log(results[5]);
-		console.log(results[6]);
+		console.log(results[0].command); // CREATE
+		console.log(results[1]);         // 3
+		console.log(results[2]);         // 1
+		console.log(results[3]);         // 1
+		console.log(results[4]);         // [ { id: 1, value: 99 }, { id: 2, value: 2 } ]
+		console.log(results[5]);         // { id: 1, value: 99 }
+		console.log(results[6]);         // 99
 	});
-
-	// output
-	//
-	//   CREATE
-	//   3
-	//   1
-	//   1
-	//   [
-	//     { id: 1, value: 99 },
-	//     { id: 2, value: 2 }
-	//   ]
-	//   { id: 1, value: 99 }
-	//   99
 ```
 
 ## Testing

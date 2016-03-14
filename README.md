@@ -10,7 +10,7 @@ Simple, expressive, Promise-based API for interacting with Postgres built on [no
 npm install --save glider
 ```
 
-## Examples
+## Usage
 
 ### create a Database object
 
@@ -29,7 +29,7 @@ var db = glider({
 });
 ```
 
-### basic query
+### basic queries
 
 The mechanics of the basic query is identical to node-postgres, except that instead of providing a callback, `glider` returns a Promise.
 

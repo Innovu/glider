@@ -10,7 +10,7 @@ Simple, expressive, Promise-based API for interacting with Postgres built on [no
 * [Usage](#usage)
 	* [create a Database object](#create-a-database-object)
 	* [basic queries (SELECT)](#basic-queries-select)
-	* [getting data from queries (INSERT/UPDATE/DELETE)](#getting-data-from-queries-insert-update-delete)
+	* [getting data from queries (INSERT/UPDATE/DELETE)](#getting-data-from-queries-insertupdatedelete)
 	* [row count queries](#row-count-queries)
 	* [postgres commands](#postgres-commands)
 	* [transactions](#transactions)

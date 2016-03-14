@@ -31,15 +31,7 @@ class Transaction {
 	}
 }
 
-[
-	{ name: 'query', result: 'result' },
-	{ name: 'select', result: 'rows' },
-	{ name: 'selectOne', result: 'one' },
-	{ name: 'selectValue', result: 'value' },
-	{ name: 'insert', result: 'count' },
-	{ name: 'update', result: 'count' },
-	{ name: 'delete', result: 'count' }
-].forEach(function(o) {
+api.methods.forEach(function(o) {
 	Transaction.prototype[o.name] = function(queryString, values) {
 		this.queries.push({ queryString, values, result: o.result });
 		return this;

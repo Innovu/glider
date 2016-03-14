@@ -23,6 +23,7 @@ exports.query = function query(client, queryString, values, opts) {
 					return resolve(result.rows[0][result.fields[0].name]);
 				case 'result':
 					return resolve(result);
+				case 'none':
 				default:
 					return resolve();
 			}
@@ -33,9 +34,10 @@ exports.query = function query(client, queryString, values, opts) {
 exports.methods = [
 	{ name: 'query', result: 'result' },
 	{ name: 'select', result: 'rows' },
-	{ name: 'selectOne', result: 'one' },
-	{ name: 'selectValue', result: 'value' },
+	{ name: 'one', result: 'one' },
+	{ name: 'value', result: 'value' },
 	{ name: 'insert', result: 'count' },
 	{ name: 'update', result: 'count' },
-	{ name: 'delete', result: 'count' }
+	{ name: 'delete', result: 'count' },
+	{ name: 'command', result: 'none' }
 ];

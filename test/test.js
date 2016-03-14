@@ -132,14 +132,14 @@ describe('[Database]', function() {
 			})
 			.then(function(result) {
 				result.should.equal(2);
-				return DB.selectOne('select * from ' + TABLE_FOO + ' where id = 2');
+				return DB.one('select * from ' + TABLE_FOO + ' where id = 2');
 			})
 			.then(function(result) {
 				result.should.have.properties({
 					id: 2,
 					bar: 'trump'
 				});
-				return DB.selectValue('select bar from ' + TABLE_FOO + ' where id = 2');
+				return DB.value('select bar from ' + TABLE_FOO + ' where id = 2');
 			})
 			.then(function(result) {
 				result.should.equal('trump');
@@ -204,8 +204,8 @@ describe('[Transaction]', function() {
 			.update('update foo set value = 0 where id = 2')
 			.delete('delete from foo where id = 1')
 			.select('select * from foo order by id asc')
-			.selectOne('select * from foo where value = 0')
-			.selectValue('select value from foo where id = 3')
+			.one('select * from foo where value = 0')
+			.value('select value from foo where id = 3')
 			.commit()
 			.then(function(results) {
 				results.should.have.length(8);

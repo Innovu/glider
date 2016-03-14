@@ -12,15 +12,32 @@ npm install --save glider
 
 ## Examples
 
+### create a Database object
+
+The `Database` object is the core for most of the API. All you need to do is provide a connection string or [client configuration object](https://github.com/brianc/node-postgres/wiki/Client#parameters), just like in node-postgres with [pg.connect](https://github.com/brianc/node-postgres/wiki/pg#connectstring-connectionstring-function-callback).
+
+```js
+var db = glider(CONNECTION_STRING);
+
+// or...
+
+var db = glider({
+	user: 'user',
+	password: 'password',
+	database: 'postgres',
+	host: 'localhost'
+});
+```
+
 ### basic query
 
-The mechanics of the basic query is identical to node-postgres.
+The mechanics of the basic query is identical to node-postgres, except that instead of providing a callback, `glider` returns a Promise.
 
 ```js
 var db = glider(CONNECTION_STRING);
 
 // "result" is a node-postgres result object
-db.query('select 1::integer as number').then(function(result) {
+db.query('select $1::integer as number', [1]).then(function(result) {
 	return result.command === 'SELECT' && result.rows[0].number === 1; // true
 });
 ```
@@ -48,7 +65,7 @@ db.value('select 1::integer as number').then(function(value) {
 });
 ```
 
-### non-returning queries
+### row count queries
 
 In the instance where you are doing non-returning queries that have a row count, like insert/update/delete, `glider` has functions that will instead return the row count. This is a matter of convenience. If you need the full result object, use `db.query()`.
 
@@ -74,6 +91,22 @@ db.delete('delete from foo where id = 2').then(function(count) {
 });
 ```
 
+### commands
+
+You can also execute [postgres commands](http://www.postgresql.org/docs/9.1/static/sql-commands.html) or any query you don't need a result for with `command()`. So whether you're invoking a `CREATE` or `ALTER` or just calling an insert/update/delete for which you don't need a result, use `command()`.
+
+```js
+var db = glider(CONNECTION_STRING);
+
+db.command('create table foo (id serial, value integer)').then(function(result) {
+	return !result; // true
+});
+
+db.command('insert into foo (value) values (1), (2)').then(function(result) {
+	return !result; // true
+});
+```
+
 ### transactions
 
 `glider` has a unique chaining API that allows you to string together a series of queries in a very clear, expressive manner. All connection pooling, result gathering, error handling, etc... is handled internally and a Promise is returned.
@@ -84,7 +117,7 @@ If there's an error in any of the queries in a transaction, `glider` will automa
 var db = glider(CONNECTION_STRING);
 db
 	.begin()
-	.query('create table foo (id serial, value integer)')
+	.command('create table foo (id serial, value integer)')
 	.insert('insert into foo (value) values ($1), ($2), ($3)', [1, 2, 3])
 	.update('update foo set value = 99 where id = 1')
 	.delete('delete from foo where id = 3')
@@ -93,7 +126,7 @@ db
 	.value('select value from foo where id = 1')
 	.commit()
 	.then(function(results) {
-		console.log(results[0].command); // CREATE
+		console.log(results[0]);         // undefined
 		console.log(results[1]);         // 3
 		console.log(results[2]);         // 1
 		console.log(results[3]);         // 1

@@ -186,6 +186,8 @@ db
 
 ## Testing
 
+To test, install the prerequisites, run `npm test`, and vagrant will take care of spinning up a headless VM with a local postgres instance. All tests will be run against this instance. The vagrant VM will continue running after the tests complete to make subsequent test runs instant. You can shut down the VM at any time by running `vagrant halt`, or remove the VM entirely with `vagrant destroy`.
+
 ### Prerequisites
 
 * [vagrant](https://www.vagrantup.com/)

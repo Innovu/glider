@@ -1,6 +1,6 @@
 {
   "name": "glider",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Simple, expressive, Promise-based API for interacting with Postgres",
   "main": "index.js",
   "scripts": {

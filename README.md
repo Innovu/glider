@@ -9,8 +9,8 @@ Simple, expressive, Promise-based API for interacting with Postgres built on [no
 * [Install](#install)
 * [Usage](#usage)
 	* [create a Database object](#create-a-database-object)
-	* [basic queries](#basic-queries)
-	* [getting data from queries](#getting-data-from-queries)
+	* [basic queries (SELECT)](#basic-queries-select)
+	* [getting data from queries (INSERT/UPDATE/DELETE)](#getting-data-from-queries-insert-update-delete)
 	* [row count queries](#row-count-queries)
 	* [postgres commands](#postgres-commands)
 	* [transactions](#transactions)
@@ -54,7 +54,7 @@ db.query('select $1::integer as number', [1]).then(function(result) {
 });
 ```
 
-### getting data from queries
+### getting data from queries (SELECT)
 
 The following functions allow you to grab rows, a single row, or even a single value.
 
@@ -77,7 +77,7 @@ db.value('select 1::integer as number').then(function(value) {
 });
 ```
 
-### row count queries
+### row count queries (INSERT/UPDATE/DELETE)
 
 In the instance where you are doing non-returning queries that have a row count, like insert/update/delete, `glider` has functions that will instead return the row count. This is a matter of convenience. If you need the full result object, use `db.query()`.
 

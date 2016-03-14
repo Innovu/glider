@@ -1,3 +1,5 @@
+> **NOT YET FUNCTIONAL**
+
 # glider [![Build Status](https://travis-ci.org/Innovu/glider.svg?branch=master)](https://travis-ci.org/Innovu/glider) [![Coverage Status](https://coveralls.io/repos/github/Innovu/glider/badge.svg?branch=master)](https://coveralls.io/github/Innovu/glider?branch=master) ![node.js >=0.12](https://img.shields.io/badge/node.js-%3E=0.12-brightgreen.svg)
 
 Simple, expressive, Promise-based API for interacting with Postgres built on [node-postgres](https://github.com/brianc/node-postgres). Supports node.js 0.12+.
@@ -10,45 +12,71 @@ npm install --save glider
 
 ## Examples
 
-### select queries
+### basic query
+
+The mechanics of the basic query is identical to node-postgres.
 
 ```js
 var db = glider(CONNECTION_STRING);
+
+// "result" is a node-postgres result object
 db.query('select 1::integer as number').then(function(result) {
-	return result.rows[0].number === 1; // true
-});
-
-db.select('select 1::integer as number').then(function(result) {
-	return result[0].number === 1; // true
-});
-
-db.selectOne('select 1::integer as number').then(function(result) {
-	return result.number === 1; // true
-});
-
-db.selectValue('select 1::integer as number').then(function(result) {
-	return result === 1; // true
+	return result.command === 'SELECT' && result.rows[0].number === 1; // true
 });
 ```
 
-### insert/update/delete
+### getting data from queries
+
+The following functions allow you to grab rows, a single row, or even a single value.
 
 ```js
 var db = glider(CONNECTION_STRING);
-db.insert('insert into foo values (1, 2, 3), (3, 4, 5)').then(function(result) {
+
+// array of rows
+db.select('select 1::integer as number').then(function(rows) {
+	return rows[0].number === 1; // true
+});
+
+// single row
+db.one('select 1::integer as number').then(function(row) {
+	return row.number === 1; // true
+});
+
+// single value
+db.value('select 1::integer as number').then(function(value) {
+	return value === 1; // true
+});
+```
+
+### non-returning queries
+
+In the instance where you are doing non-returning queries that have a row count, like insert/update/delete, glider has functions that will instead return the row count. This is a matter of convenience. If you need the full result object, use `db.query()`.
+
+The functions are functionally identical to each other, but allow the actual operation to be more expressive, which becomes extremely useful once you start using `glider`'s [transactions](#transactions).
+
+```js
+var db = glider(CONNECTION_STRING);
+
+db.query('insert into foo values (1, 2, 3), (3, 4, 5)').then(function(result) {
 	return result.rowCount === 2 && result.command === 'INSERT'; // true
 });
 
-db.update('update foo set value = 1 where id = 1').then(function(result) {
-	return result.rowCount === 1 && result.command === 'UPDATE'; // true
+db.insert('insert into foo values (1, 2, 3), (3, 4, 5)').then(function(count) {
+	return count === 2; // true
 });
 
-db.delete('delete from foo where id = 2').then(function(result) {
-	return result.rowCount === 1 && result.command === 'DELETE'; // true
+db.update('update foo set value = 1 where id = 1').then(function(count) {
+	return count === 1; // true
+});
+
+db.delete('delete from foo where id = 2').then(function(count) {
+	return count === 1; // true
 });
 ```
 
 ### transactions
+
+`glider` has a unique chaining API that allows you to string together a series of queries in a very clear, expressive manner. All connection pooling, result gathering, error handling, etc... is handled internally and a Promise is returned.
 
 If there's an error in any of the queries in a transaction, `glider` will automatically invoke a `ROLLBACK` and reject the current Promise with the database error.
 
@@ -82,8 +110,8 @@ db
 	.update('update foo set value = 99 where id = 1')
 	.delete('delete from foo where id = 3')
 	.select('select * from foo')
-	.selectOne('select value from foo where id = 1')
-	.selectValue('select value from foo where id = 1')
+	.one('select value from foo where id = 1')
+	.value('select value from foo where id = 1')
 	.commit()
 	.then(function(results) {
 		console.log(results[0].command); // CREATE

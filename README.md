@@ -50,7 +50,7 @@ db.value('select 1::integer as number').then(function(value) {
 
 ### non-returning queries
 
-In the instance where you are doing non-returning queries that have a row count, like insert/update/delete, glider has functions that will instead return the row count. This is a matter of convenience. If you need the full result object, use `db.query()`.
+In the instance where you are doing non-returning queries that have a row count, like insert/update/delete, `glider` has functions that will instead return the row count. This is a matter of convenience. If you need the full result object, use `db.query()`.
 
 The functions are functionally identical to each other, but allow the actual operation to be more expressive, which becomes extremely useful once you start using `glider`'s [transactions](#transactions).
 
@@ -85,28 +85,7 @@ var db = glider(CONNECTION_STRING);
 db
 	.begin()
 	.query('create table foo (id serial, value integer)')
-	.query('insert into foo (value) values (1), (2), (3)')
-	.query('update foo set value = 99 where id = 1')
-	.query('delete from foo where id = 3')
-	.query('select * from foo')
-	.commit()
-	.then(function(results) {
-		console.log(results[0].command);  // CREATE
-		console.log(results[1].rowCount); // 3
-		console.log(results[2].rowCount); // 1
-		console.log(results[3].rowCount); // 1
-		console.log(results[4].rows);     // [ { id: 1, value: 99 }, { id: 2, value: 2 } ]
-	});
-```
-
-or with `glider`'s specialized functions...
-
-```js
-var db = glider(CONNECTION_STRING);
-db
-	.begin()
-	.query('create table foo (id serial, value integer)')
-	.insert('insert into foo (value) values (1), (2), (3)')
+	.insert('insert into foo (value) values ($1), ($2), ($3)', [1, 2, 3])
 	.update('update foo set value = 99 where id = 1')
 	.delete('delete from foo where id = 3')
 	.select('select * from foo')
@@ -121,6 +100,42 @@ db
 		console.log(results[4]);         // [ { id: 1, value: 99 }, { id: 2, value: 2 } ]
 		console.log(results[5]);         // { id: 1, value: 99 }
 		console.log(results[6]);         // 99
+	});
+```
+
+or a similar example of returning `node-postgres`'s result objects...
+
+```js
+var db = glider(CONNECTION_STRING);
+db
+	.begin()
+	.query('create table foo (id serial, value integer)')
+	.query('insert into foo (value) values (1), (2), (3)')
+	.query('update foo set value = 99 where id = 1')
+	.query('delete from foo where id = 3')
+	.query('select * from foo')
+	.commit()
+	.then(function(results) {
+		console.log(results[0].command);  // CREATE
+		console.log(results[1].rowCount); // 3
+		console.log(results[2].rowCount); // 1
+		console.log(results[3].rowCount); // 1
+		console.log(results[4].rows);     // [ { id: 1, value: 99 }, { id: 2, value: 2 } ]
+	});
+```
+
+and since the session is handled internally by `glider`, you can make use of postgres's [sequence manipulation functions](http://www.postgresql.org/docs/9.4/static/functions-sequence.html), like in this trivial example...
+
+```js
+var db = glider(CONNECTION_STRING);
+db
+	.begin()
+	.query('create table foo (id serial, value integer)')
+	.insert('insert into foo (value) values (999)')
+	.one('select value from foo where id = lastval()')
+	.commit()
+	.then(function(value) {
+		console.log(value); // 999
 	});
 ```
 

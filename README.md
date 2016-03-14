@@ -29,7 +29,7 @@ npm install --save glider
 The `Database` object is the core for most of the API. All you need to do is provide a connection string or [client configuration object](https://github.com/brianc/node-postgres/wiki/Client#parameters), just like in node-postgres with [pg.connect](https://github.com/brianc/node-postgres/wiki/pg#connectstring-connectionstring-function-callback).
 
 ```js
-var db = glider(CONNECTION_STRING);
+var db = glider(postgresql://postgres@localhost:5432/postgres);
 
 // or...
 

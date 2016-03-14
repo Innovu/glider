@@ -4,6 +4,18 @@
 
 Simple, expressive, Promise-based API for interacting with Postgres built on [node-postgres](https://github.com/brianc/node-postgres). Supports node.js 0.12+.
 
+## Table of Contents
+
+* [Install](#install)
+* [Usage](#usage)
+	* [create a Database object](#create-a-database-object)
+	* [basic queries](#basic-queries)
+	* [getting data from queries](#getting-data-from-queries)
+	* [row count queries](#row-count-queries)
+	* [postgres commands](#postgres-commands)
+	* [transactions](#transactions)
+* [Testing](#testing)
+
 ## Install
 
 ```
@@ -91,7 +103,7 @@ db.delete('delete from foo where id = 2').then(function(count) {
 });
 ```
 
-### commands
+### postgres commands
 
 You can also execute [postgres commands](http://www.postgresql.org/docs/9.1/static/sql-commands.html) or any query you don't need a result for with `command()`. So whether you're invoking a `CREATE` or `ALTER` or just calling an insert/update/delete for which you don't need a result, use `command()`.
 
